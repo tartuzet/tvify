@@ -1,5 +1,12 @@
 $(function () {
-var $container = $('#app-body').find('.tv-shows');
+var $tvShowsContainer = $('#app-body').find('.tv-shows');
+
+$tvShowsContainer.on('click','button.like',function (ev){
+    var $this = $(this);
+    $this.closest('.tv-show').toggleClass('liked');
+
+})
+
 var template = '<article class="tv-show">'+
 '<div class="left img-container">'+
 '<img src=":img:" alt=":img alt:">'+
@@ -7,12 +14,12 @@ var template = '<article class="tv-show">'+
 '<div class="right info">'+
 '<h1>:name:</h1>'+
 '<p>:summary:</p>'+
+'<button class="like" >⭐</button>'+
 '</div>'+
 '</article>';
-
 function renderShows(shows){
   shows.forEach(function(show){
-    console.log(show);
+    $tvShowsContainer.find('.loader').remove();
     var article=template
     .replace(':name:',show.name)
     .replace(':img:',show.image.medium)
@@ -20,9 +27,7 @@ function renderShows(shows){
     .replace(':img alt:',show.name+" Logo");
 
     var $article = $(article);
-    $article.hide();
-    $container.append($article);
-    $article.show(2000);
+    $tvShowsContainer.append($article.fadeIn(2000));
 
   })
 }
@@ -36,9 +41,9 @@ $('#app-body').find('form')
   .find('input[type="text"]')
   .val();
 
-  $container.find('.tv-show').remove();
+  $tvShowsContainer.find('.tv-show').remove();
   $loader = $('<div class="loader">');
-  $loader.appendTo($container);
+  $loader.appendTo($tvShowsContainer);
   $.ajax({
     url:'http://api.tvmaze.com/search/shows',
     data:{q:busqueda},
@@ -56,14 +61,16 @@ $('#app-body').find('form')
 })
 
 
-$.ajax({
-  url:'http://api.tvmaze.com/shows',
-  success: function(shows,textStatus,xhr){
-    $container.find('.loader').remove();
+if (!localStorage.shows){
+$.ajax('http://api.tvmaze.com/shows')
+  .then(function(shows){
+    $tvShowsContainer.find('.loader').remove();
+    localStorage.shows = JSON.stringify(shows);
     renderShows(shows);
-  }
-})
-
+  })
+}else{
+  renderShows(JSON.parse(localStorage.shows));
+}
 
 
 })
